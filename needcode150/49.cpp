@@ -1,61 +1,63 @@
+// sort as key, T: O(nklogk), S: O(nk)
+
 #include <vector>
 #include <string>
 #include <unordered_map>
 #include <algorithm>
 
-using std::vector;
-using std::string;
-using std::unordered_map;
-using std::sort;
-
 class Solution {
 public:
-    vector<vector<string>> groupAnagrams(vector<string>& strs) {
-        unordered_map<string, vector<string>> groups; // sorted-word : {word...}
-        for (const string& word : strs) {
-            string key = word;
-            sort(key.begin(), key.end());
-            groups[key].push_back(word);
+    std::vector<std::vector<std::string>> groupAnagrams(std::vector<std::string>& strs) {
+        std::unordered_map<std::string, std::vector<std::string>> groups;
+        for (auto& s : strs) {
+            std::string key = s;
+            std::sort(key.begin(), key.end());
+            groups[key].push_back(s);
         }
 
-        vector<vector<string>> res;
+        std::vector<std::vector<std::string>> res;
         res.reserve(groups.size());
-        for (auto& [key, group] : groups) {
-            res.push_back(std::move(group));
-        }
+        for (auto& [key, val] : groups) { res.push_back(std::move(val)); }
         return res;
     }
 };
 
-// follow-up: freq-counting
+// freq-array as key, T: O(nk), S: O(nk)
+
+#include <vector>
+#include <string>
+#include <unordered_map>
+#include <cstring>
 
 class Solution {
 public:
-    vector<vector<string>> groupAnagrams(vector<string>& strs) {
-        unordered_map<string, vector<string>> groups;
-        for (const string& word : strs) {
-            string key = make_key(word);
-            groups[key].push_back(word);
+    std::vector<std::vector<std::string>> groupAnagrams(std::vector<std::string>& strs) {
+        constexpr int ALPHA_SIZE = 26;
+        constexpr char BASE_CHAR = 'a';
+        std::unordered_map<std::string, std::vector<std::string>> groups;
+
+        for (auto& s : strs) {
+            int freq[ALPHA_SIZE];
+            std::memset(freq, 0, sizeof(freq));
+            for (char c : s) { freq[c - BASE_CHAR]++; }
+
+            // encode freq-array into fixed-length string key
+            std::string key(ALPHA_SIZE, '\0');
+            for (int i = 0; i < ALPHA_SIZE; i++) { key[i] = static_cast<char>( freq[i]); }
+            groups[key].push_back(s);
         }
 
-        vector<vector<string>> res;
+        std::vector<std::vector<std::string>> res;
         res.reserve(groups.size());
-        for (auto& [key, group] : groups) {
-            res.push_back(std::move(group));
-        }
+        for (auto& [key, val] : groups) { res.push_back(std::move(val)); }
         return res;
     }
-
-private:
-    string make_key(const string& word) {
-        int freq[26] = {};
-        for (char ch : word) { ++freq[ch-'a']; }
-        string key;
-        key.reserve(52); // worst case: 26 letter + 26 delimiters
-        for (int i = 0; i < 26; i++) {
-            key += static_cast<char>('a' + i);
-            key += static_cast<char>(freq[i]);
-        }
-        return key;
-    }
 };
+
+/*
+   - cache behavior
+   - key encoding
+
+   ? collision risk in key encoding
+   ? avoid hash map entirely
+*/

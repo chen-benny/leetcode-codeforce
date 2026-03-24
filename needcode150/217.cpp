@@ -1,40 +1,43 @@
+// sort, T: O(nlogn), S: O(1)
+
+#include <vector>
+#include <algorithm>
+
+class Solution {
+public:
+    bool containsDuplicate(std::vector<int>& nums) {
+        std::sort(nums.begin(), nums.end());
+
+        for(int i = 1; i < static_cast<int>(nums.size()); i++) {
+            if (nums[i] == nums[i - 1]) { return true; }
+        }
+        return false;
+    }
+};
+
+// hash-set, T: O(n), S: O(n)
+
 #include <vector>
 #include <unordered_set>
 
-using std::vector;
-using std::unordered_set;
-
 class Solution {
 public:
-    bool containsDuplicate(vector<int>& nums) {
-        unordered_set<int> visited;
+    bool containsDuplicate(std::vector<int>& nums) {
+        std::unordered_set<int> visited;
         visited.reserve(nums.size());
-
+        visited.max_load_factor(0.25f);
         for (int val : nums) {
-            if (!visited.insert(val).second) {
-                return true;
-            }
+            if (!visited.insert(val).second) { return true; }
         }
         return false;
     }
 };
 
-// follow-up: O(1) space
+/*
+   - cache behavior
+   - sort vs hash-set tradeoff
+   - hot-path allocation
 
-#include <algorithm>
-
-using std::sort;
-
-class Solution {
-public:
-    bool containsDuplicate(vector<int>& nums) {
-        sort(nums.begin(), nums.end());
-
-        for (int i = 1; i < nums.size(); i++) {
-            if (nums[i] == nums[i-1]) {
-                return true;
-            }
-        }
-        return false;
-    }
-};
+   ? insert().second instead of find then insert
+   ? when prefer sort over hash-set in production
+*/

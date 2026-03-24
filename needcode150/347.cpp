@@ -1,88 +1,71 @@
+// hash-map + min-heap, keep size-k min-heap + evict least frequent, T: O(nlogk), S: O(n)
+
 #include <vector>
 #include <unordered_map>
-#include <algorithm>
-#include <utility>
-
-using std::vector;
-using std::unordered_map;
-using std::sort;
-using std::pair;
+#include <queue>
 
 class Solution {
 public:
-    vector<int> topKFrequent(vector<int>& nums, int k) {
-        int n = static_cast<int>(nums.size());
-        unordered_map<int, int> freq;
-        freq.reserve(n);
-        for (int val : nums) { ++freq[val]; }
+    std::vector<int> topKFrequent(std::vector<int>& nums, int k) {
+        std::unordered_map<int, int> freq;
+        freq.reserve(nums.size());
+        freq.max_load_factor(0.25f);
+        for (int val : nums) { freq[val]++; };
 
-        vector<pair<int, int>> entries(freq.begin(), freq.end());
-        sort(entries.begin(), entries.end(), [](const pair<int, int>& a, const pair<int, int>& b) {
-            return a.second > b.second;
-        });
+        std::priority_queue<
+            std::pair<int, int>,
+            std::vector<std::pair<int, int>>,
+            std::greater<>
+        >minHeap;
 
-        vector<int> res;
-        res.reserve(k);
-        for (int i = 0; i < k; i++) { res.push_back(entries[i].first); }
-        return res;
-    }
-};
-
-// follow-up: heap
-
-#include <functional>
-
-using std::push_heap;
-using std::pop_heap;
-using std::greater;
-
-class Solution {
-public:
-    vector<int> topKFrequent(vector<int>& nums, int k) {
-        int n = static_cast<int>(nums.size());
-        unordered_map<int, int> freq;
-        freq.reserve(n);
-        for (int val : nums) { ++freq[val]; }
-
-        vector<pair<int, int>> heap; // (freq, val)
-        heap.reserve(k + 1);
-        for (const auto& [val, cnt] : freq) {
-            heap.emplace_back(cnt, val);
-            push_heap(heap.begin(), heap.end(), greater<pair<int, int>>{});
-            if (static_cast<int>(heap.size()) > k) {
-                pop_heap(heap.begin(), heap.end(), greater<pair<int, int>>{});
-                heap.pop_back();
-            }
+        for (auto& [val, cnt] : freq) {
+            minHeap.push({cnt, val});
+            if (static_cast<int>(minHeap.size()) > k) { minHeap.pop(); }
         }
 
-        vector<int> res;
+        std::vector<int> res;
         res.reserve(k);
-        for (const auto& [cnt, val] : heap) { res.push_back(val); }
+        while (!minHeap.empty()) {
+            res.push_back(minHeap.top().second);
+            minHeap.pop();
+        }
         return res;
     }
 };
 
-// follow-up: bucket sort
+// bucket-sort, freq is bounded by [1, n], idx as freq buckets, T: O(n), S: O(n)
+
+#include <vector>
+#include <unordered_map>
 
 class Solution {
 public:
-    vector<int> topKFrequent(vector<int>& nums, int k) {
+    std::vector<int> topKFrequent(std::vector<int>& nums, int k) {
         int n = static_cast<int>(nums.size());
-        unordered_map<int, int> freq;
-        freq.reserve(n);
-        for (int val : nums) { ++freq[val]; }
+        std::unordered_map<int, int> freq; // {val: cnt}
+        freq.reserve(nums.size());
+        freq.max_load_factor(0.25f);
+        for (int val : nums) { freq[val]++; }
 
-        vector<vector<int>> buckets(n + 1);
-        for (const auto& [val, cnt] : freq) { buckets[cnt].push_back(val); }
+        // bucket[i] = list of val with cnt of i
+        std::vector<std::vector<int>> bucket(n + 1);
+        for (auto& [val, cnt] : freq) { bucket[cnt].push_back(val); }
 
-        vector<int> res;
+        std::vector<int> res;
         res.reserve(k);
-        for (int i = n; i >= 0 && static_cast<int>(res.size()) < k; i--) {
-            for (int val : buckets[i]) {
+        for (int i = n ; i >= 1 && static_cast<int>(res.size()) < k; i--) {
+            for (int val : bucket[i]) {
                 res.push_back(val);
-                if (static_cast<int>(res.size()) == k) { break; }
             }
         }
         return res;
     }
 };
+
+/*
+   - cache behavior
+   - heap vs bucket
+
+   ? without hashmap
+   ? k = 1
+*/
