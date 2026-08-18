@@ -1,27 +1,27 @@
-// sort-key grouping, T: O(nklogk), S: O(nk)
-
-// counting-key grouping, T: O(nk), S: O(nk)
+// counting-key grouping, T: O(nk), S: O(nk), n = num of strs, k = max str len
 
 #include <vector>
-#include <string>
+#include <string> // std::to_string
 #include <unordered_map>
+#include <utility> // std::move
 
 class Solution {
 private:
     static constexpr int R = 26;
     static constexpr char BASE = 'a';
 
-    std::string count_key(const std::string& s) const {
+    std::string countKey(const std::string& s) const {
         int freq[R] = {};
         for (int i = 0; i < static_cast<int>(s.size()); i++) {
             freq[s[i] - BASE]++;
         }
 
-        std::string key;
-        key.reserve(R * 2);
+        std::string key; // no-reserve, typical keys are short for SSO
         for (int i = 0; i < R; i++) {
-            key += static_cast<char>(BASE + i);
-            key += std::to_string(freq[i]);
+            if (freq[i] > 0) {
+                key += static_cast<char>(BASE + i);
+                key += std::to_string(freq[i]);
+            }
         }
         return key;
     }
@@ -32,7 +32,7 @@ public:
         groups.reserve(strs.size());
 
         for (int i = 0; i < static_cast<int>(strs.size()); i++) {
-            std::string key = count_key(strs[i]);
+            std::string key = countKey(strs[i]);
             groups[key].push_back(std::move(strs[i]));
         }
 
@@ -44,7 +44,3 @@ public:
         return out;
     }
 };
-
-// sorted-key and counting-key grouping both pay one heap alloc per str for the key <- std::array<uint8_t, 26> + custom std::hash in C++17
-// cache behavior: freq[26] is 104 bytes on stack, L1-resident
-// copy avoidance: std::move(strs[i]) and std::move(entry.second)

@@ -1,6 +1,3 @@
-// hash-set, T: O(n), S: O(n)
-// sort and scan, T: O(nlogn), S: O(1)
-
 // sign-marking, T: O(n), S: O(1)
 
 #include <vector>
@@ -23,9 +20,8 @@ public:
     }
 };
 
-// cycle-sort, T: O(n) amortized, S: O(1)
+// cycle-sort, T: O(n), S: O(1)
 
-#include <vector>
 #include <utility> // std::swap
 
 class Solution {
@@ -48,7 +44,3 @@ public:
         return out;
     }
 };
-
-// no sanitize and bound-check due to question contraints 1<=nums[i]<=n
-// arithmetic accm marking: nums[(nums[i]-1)%n] instead of negating, check nums[i] > 2n to identify dup
-// no reading a stale va after negation: compute idx from nums[i] with abs() first, then negate it
