@@ -1,8 +1,19 @@
 // sorting, T: O(nlogn), S: O(1)
 
-// char-counting array, T: O(n), S: O(1)
-
 #include <string>
+#include <algorithm> // std::sort
+
+class Solution {
+public:
+    bool isAnagram(std::string s, std::string t) {
+        if (s.length() != t.length()) { return false; }
+        std::sort(s.begin(), s.end());
+        std::sort(t.begin(), t.end());
+        return s == t;
+    }
+};
+
+// char-counting array, T: O(n), S: O(1)
 
 class Solution {
 public:
@@ -24,5 +35,3 @@ public:
         return true;
     }
 };
-
-// follow-up Unicode extension: char32_t as key for unodered_map

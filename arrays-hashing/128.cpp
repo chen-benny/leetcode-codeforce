@@ -13,7 +13,7 @@ public:
         int len = 1;
         for (int i = 1; i < static_cast<int>(nums.size()); i++) {
             if (nums[i] == nums[i - 1]) { continue; }
-            cur = (nums[i] == nums[i - 1] + 1) ? cur + 1 : 1;
+            len = (nums[i] == nums[i - 1] + 1) ? len + 1 : 1;
             maxLen = std::max(maxLen, len);
         }
         return maxLen;

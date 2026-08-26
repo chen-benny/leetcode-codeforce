@@ -21,8 +21,6 @@ public:
     }
 };
 
-
-
 // XOR trick, T: O(n), S: O(1)
 
 class Solution {
