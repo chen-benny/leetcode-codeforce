@@ -1,46 +1,48 @@
-// hash-set, T: O(1) insert/remove, O(1) getRandom, S: O(n)
-
 // vector + index-map, swap-with-last removal, T: O(1) insert/remove/getRandom, S: O(n)
 
 #include <vector>
 #include <unordered_map>
 #include <random> // std::mt19937, std::random_device, std::uniform_int_distribution
+#include <cstdlib> // std::rand, std::srand;
+#include <ctime> // std::time
 
 class RandomizedSet {
 private:
     std::vector<int> vals;
-    std::unordered_map<int, int> idx_map;
+    std::unordered_map<int, int> idxOf; // val -> idx
     std::mt19937 rng;
 
 public:
     RandomizedSet() : rng(std::random_device{}()) {
-        idx_map.max_load_factor(0.25f);
+        idxOf.max_load_factor(0.25f);
+
+        // std::srand(static_cast<unsigned>(std::time(nullptr)));
     }
 
     bool insert(int val) {
-        if (idx_map.count(val) > 0) { return false; }
-        idx_map[val] = static_cast<int>(vals.size());
+        auto [it, inserted] = idxOf.insert({val, static_cast<int>(vals.size())});
+        if (!inserted) { return false; }
         vals.push_back(val);
         return true;
     }
 
     bool remove(int val) {
-        auto it = idx_map.find(val);
-        if (it == idx_map.end()) { return false; }
+        auto it = idxOf.find(val);
+        if (it == idxOf.end()) { return false; }
         int idx = it->second;
-        int last_val = vals.back();
-        vals[idx] = last_val;
-        idx_map[last_val] = idx;
+        int lastVal = vals.back();
+
+        vals[idx] = lastVal;
+        idxOf[lastVal] = idx; // must precede the erase: case lastVal==val
         vals.pop_back();
-        idx_map.erase(val);
+        idxOf.erase(val);
         return true;
     }
 
     int getRandom() {
         std::uniform_int_distribution<int> dist(0, static_cast<int>(vals.size()) - 1);
         return vals[dist(rng)];
+
+        // return vals[std::rand() % vals.size()];
     }
 };
-
-// self-removal order issue: idx_map[last_val] = idx before erase(val) to avoid re-insert if last_val==val
-// mt19937 + uniform_int_distribution not rand() % n: rand()%n slightly over-represents the low end or range

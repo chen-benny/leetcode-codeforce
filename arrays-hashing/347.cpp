@@ -9,11 +9,10 @@
 class Solution {
 public:
     std::vector<int> topKFrequent(std::vector<int>& nums, int k) {
-        int n = static_cast<int>(nums.size());
         std::unordered_map<int, int> freq;
         freq.reserve(n);
         freq.max_load_factor(0.25f);
-        for (int i = 0; i < n; i++) { freq[nums[i]]++; }
+        for (int num : nums) { freq[num]++; }
 
         std::vector<std::pair<int, int>> buf;
         buf.reserve(k + 1);
@@ -37,9 +36,6 @@ public:
 
 // bucket-sort, T: O(n), S: O(n)
 
-#include <vector>
-#include <unordered_map>
-
 class Solution {
 public:
     std::vector<int> topKFrequent(std::vector<int>& nums, int k) {
@@ -48,9 +44,9 @@ public:
         std::unordered_map<int, int> freq;
         freq.reserve(n);
         freq.max_load_factor(0.25f);
-        for (int i = 0; i < n; i++) { freq[nums[i]]++; }
+        for (int num : nums) { freq[num]++; }
 
-        std::vector<std::vector<int>> buckets(n + 1);
+        std::vector<std::vector<int>> buckets(n + 1); // element appears at most n
         for (auto& [val, cnt] : freq) {
             buckets[cnt].push_back(val);
         }
@@ -123,6 +119,30 @@ public:
     }
 };
 
-// shuffle is necessary: avoid degrading to O(n2) with already sorted input
-// 3-way partition: handles highly repetitive count nums
-// bucket-sort space doesn't scale: always n+1
+// quick-sort + STL, T: O(n), S: O(1)
+
+#include <algorithm> // std::nth_element
+
+class Solution {
+public:
+    std::vector<int> topKFrequent(std::vector<int>& nums, int k) {
+        std::unordered_map<int, int> freq;
+        freq.reserve(nums.size());
+        freq.max_load_factor(0.25f);
+        for (int num : nums) { freq[num]++; }
+
+        std::vector<std::pair<int, int>> entries; // (cnt, val) pairs
+        entries.reserve(freq.size());
+        for (const auto& [val, cnt] : freq) { entries.push_back({cnt, val}); }
+
+        int cut = entries.size() - k;
+        std::nth_element(entries.begin(), entries.begin() + cut, entries.end());
+
+        std::vector<int> out;
+        out.reserve(k);
+        for (int i = cut; i < static_cast<int>(entries.size()); i++) {
+            out.push_back(entries[i].second);
+        }
+        return out;
+    }
+};

@@ -1,41 +1,47 @@
-// length-prefix, T: O(n), S: O(n)
+// length-prefix + string_view, T: O(n), S: O(n)
 
 #include <vector>
-#include <string> // std::to_string, std::stoi
+#include <string> // std::to_string
+#include <string_view>
+#include <charconv> // std::from_chars
 
 class Codec {
 private:
     static constexpr char DELIM = '#';
+    static constexpr int MAX_DIGITS = 3; // strs[i].length <= 300
 
 public:
     std::string encode(std::vector<std::string>& strs) {
+        int total = 0;
+        for (const std::string& s : strs) { total += s.size() + MAX_DIGITS + 1; } // digits + delim
         std::string out;
-        for (int s = 0; s < static_cast<int>(strs.size()); s++) {
-            out += std::to_string(strs[s].length());
+        out.reserve(total);
+
+        for (const std::string& s : strs) {
+            out += std::to_string(s.size());
             out += DELIM;
-            out += strs[s];
+            out += s;
         }
         return out;
     }
 
     std::vector<std::string> decode(std::string s) {
         std::vector<std::string> out;
+        std::string_view buf(s);
         int i = 0;
-        const int n = static_cast<int>(s.length());
 
-        while (i < n) {
+        while (i < buf.size()) {
             int j = i;
-            while (s[j] != DELIM) { j++; }
 
-            int len = std::stoi(s.substr(i, j - i));
+            while (buf[j] != DELIM) { j++; }
+
+            int len = 0;
+            std::from_chars(buf.data() + i, buf.data() + j, len);
+
             int start = j + 1;
-            out.push_back(s.substr(start, len));
+            out.emplace_back(buf.substr(start, len));
             i = start + len;
         }
         return out;
     }
 };
-
-// len+DELIM+str: DELIM is to term len, avoid ambiguity between len and str
-// from_chars + string_view + emplace_back: save one copy from std::stoi(s.substr(i,j-i))
-// follow-up big-endian encoding: fixed header size, no reserve delimiter, shift + OR for parsing, network byte order
