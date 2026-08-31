@@ -2,17 +2,18 @@
 
 #include <vector>
 #include <unordered_map>
-#include <random> // std::mt19937, std::random_device, std::uniform_int_distribution
+#include <cstdlib> // std::srand, std::rand
+#include <ctime> // std::time
 
 class Solution {
 private:
     std::unordered_map<int, std::vector<int>> map; // val: [idx,]
-    std::mt19937 rng;
 
 public:
-    Solution(std::vector<int>& nums) : rng(std::random_device{}()) {
-        map.reserve(nums.size());
+    Solution(std::vector<int>& nums) {
+        std::srand(static_cast<unsigned int>(std::time(nullptr)));
         map.max_load_factor(0.25f);
+        map.reserve(nums.size());
         for (int i = 0; i < static_cast<int>(nums.size()); i++) {
             map[nums[i]].push_back(i);
         }
@@ -20,32 +21,32 @@ public:
 
     int pick(int target) {
         const std::vector<int>& indices = map.at(target);
-        std::uniform_int_distribution<int> dist(0, static_cast<int>(indices.size()) - 1);
-        return indices[dist(rng)];
+        return indices[std::rand() % indices.size()];
     }
 };
 
 // reservoir-sampling, T: O(n) pick, S: O(1)
+// follow-up: no space allocation || stream input
 
 class Solution {
 private:
     std::vector<int> nums;
-    std::mt19937 rng;
 
 public:
-    Solution(std::vector<int>& nums) : nums(nums), rng(std::random_device{}()) {}
+    Solution(std::vector<int>& nums) : nums(nums) {
+        std::srand(static_cast<unsigned int>(std::time(nullptr)));
+    }
 
     int pick(int target) {
         int count = 0;
-        int res = -1;
+        int result = -1;
 
         for (int i = 0; i < static_cast<int>(nums.size()); i++) {
-            if (nums[i] == target) { // each == has 1/count prob to overwrite res
+            if (nums[i] == target) {
                 count++;
-                std::uniform_int_distribution<int> dist(0, count - 1);
-                if (dist(rng) == 0) { res = i; }
+                if (std::rand() % count == 0) { result = i; } // fire with prob 1/count
             }
         }
-        return res;
+        return result;
     }
 };

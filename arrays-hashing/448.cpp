@@ -1,5 +1,3 @@
-// hash-set, T: O(n), S: O(n)
-
 // sign-marking, T: O(n), S: O(1)
 
 #include <vector>
@@ -38,7 +36,7 @@ public:
         const int n = static_cast<int>(nums.size());
 
         for (int i = 0; i < n; i++) {
-            while (nums[nums[i] - 1] != nums[i])  {
+            while (nums[nums[i] - 1] != nums[i])  { // send nums[i] to its correct pos
                 std::swap(nums[i], nums[nums[i] - 1]);
             }
         }
@@ -52,5 +50,3 @@ public:
         return out;
     }
 };
-
-// follow-up: add n/modular-arithmetic marking: nums[(nums[i]-1) % n] += n, scan for nums[i] <= n as missing ones

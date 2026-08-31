@@ -1,65 +1,27 @@
-// prefix-sum + linear-scan, T: O(n) pickIndex, S: O(n)
+// prefix-sum + binary-search, T: O(log n) pick, S: O(n)
 
 #include <vector>
-#include <random> // std::mt19937, std::random_device, std::uniform_int_distribution
+#include <cstdlib> // std::rand, std::srand
+#include <ctime> // std::time
 
 class Solution {
 private:
-    std::vector<int> prefix;
-    int total;
-    std::mt19937 rng;
+    std::vector<int> prefix; // prefix[i] = sum(w[0..i]);
 
 public:
-    Solution(std::vector<int>& w) : rng(std::random_device{}()) {
-        prefix.reserve(w.size());
-        total = 0;
-        for (int i = 0; i < static_cast<int>(w.size()); i++) {
-            total += w[i];
-            prefix.push_back(total);
+    Solution(std::vector<int>& w) : prefix(w.size()) {
+        std::srand(static_cast<unsigned int>(std::time(nullptr)));
+        prefix.resize(w.size());
+        prefix[0] = w[0];
+        for (int i = 1; i < w.size(); i++) {
+            prefix[i] = prefix[i - 1] + w[i];
         }
     }
 
     int pickIndex() {
-        std::uniform_int_distribution<int> dist(1, total);
-        int target = dist(rng);
+        int target = 1 + std::rand() % prefix.back(); // uniform in [1, total]
 
-        for (int i = 0; i < static_cast<int>(prefix.size()); i++) {
-            if (prefix[i] >= target) {
-                return i;
-            }
-        }
-        return -1;
-    }
-};
-
-// prefix-sum + binary-search, T: O(logn) pickIndex, S: O(n)
-
-#include <vector>
-#include <random> // std::mt19937, std::random_device, std::uniform_int_distribution
-#include <algorithm> // std::lower_bound
-
-class Solution {
-private:
-    std::vector<int> prefix;
-    int total;
-    std::mt19937 rng;
-
-public:
-    Solution(std::vector<int>& w) : rng(std::random_device{}()) {
-        prefix.reserve(w.size());
-        total = 0;
-        for (int i = 0; i < static_cast<int>(w.size()); i++) {
-            total += w[i];
-            prefix.push_back(total);
-        }
-    }
-
-    int pickIndex() {
-        std::uniform_int_distribution<int> dist(1, total);
-        int target = dist(rng);
-
-        int lo = 0;
-        int hi = static_cast<int>(prefix.size()) - 1;
+        int lo = 0, hi = prefix.size() - 1;
         while (lo < hi) {
             int mid = lo + (hi - lo) / 2;
             if (prefix[mid] < target) {
@@ -68,11 +30,6 @@ public:
                 hi = mid;
             }
         }
-        // auto it = std::lower_bound(prefix.begin(), prefix.end(), target);
-        // return static_cast<int>(it - prefix.begin());
         return lo;
     }
 };
-
-// binary-search over linear-scan: determined by the size of data range
-// why not reservoir-sampling: full data is known in adv, pre-compute beats reservoir-sampling (re-pay O(n) on every call)
