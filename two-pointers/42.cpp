@@ -1,29 +1,25 @@
-// dp with pre-compute left/right max arrays, T: O(n), S: O(n)
-
 // monotonic-stack, T: O(n), S: O(n)
 
 #include <vector>
 #include <stack>
 #include <algorithm> // std::min
+#include <utility> // std::move
 
 class Solution {
 public:
     int trap(std::vector<int>& height) {
         const int n = static_cast<int>(height.size());
-
-        std::vector<int> buf;
-        buf.reserve(n);
-        std::stack<int, std::vector<int>> stk(std::move(buf));
+        std::stack<int> stk; // indices of non-incre order of val
 
         int water = 0;
         for (int i = 0; i < n; i++) {
             while (!stk.empty() && height[i] > height[stk.top()]) {
                 int bottom = stk.top(); stk.pop();
-                if (stk.empty()) { break; } // no left wall already
+                if (stk.empty()) { break; } // no left wall: nothing above bottom
                 int left = stk.top();
-                int wt = i - left - 1;
+                int w = i - left - 1;
                 int h = std::min(height[left], height[i]) - height[bottom];
-                water += wt * h;
+                water += w * h;
             }
             stk.push(i);
         }
@@ -59,6 +55,3 @@ public:
         return water;
     }
 };
-
-// two-pointer correctness: each comp determines the lower side water with one step shrink, since leftMax <= max(rightMax, height[right])
-// monotonic-stack: computes a horizontal rectangle when a higher bar occurs -> repeatly compute water with bottom until left is higher
