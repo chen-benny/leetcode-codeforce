@@ -24,15 +24,14 @@ public:
 
 // dutch-national-flag, T: O(n) one pass, S: O(1)
 
-#include <vector>
 #include <utility> // std::swap
 
 class Solution {
 public:
     void sortColors(std::vector<int>& nums) {
         int lo = 0; // [0..lo) for 0
-        int i = lo; // [lo..hi] for 1
         int hi = static_cast<int>(nums.size()) - 1; // [hi..n) for 2
+        int i = 0; // [lo, i) for 1; [i, hi] to be set
 
         while (i <= hi) {
             if (nums[i] == 0) { std::swap(nums[lo++], nums[i++]); }
@@ -41,5 +40,3 @@ public:
         }
     }
 };
-
-// sort a fixed small alphabet lead to quick-sort(3way) / counting-sort that beats O(nlogn) sorting
