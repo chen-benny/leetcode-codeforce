@@ -1,9 +1,7 @@
-// sliding-window + hash-map, T: O(m+n), S: O(m+n)
-
-// sliding-window + fixed-array, S: O(m+n), S: O(1)
+// sliding-window + char-index-array, S: O(m+n), S: O(1)
 
 #include <string>
-#include <cstring> // std::memset
+#include <vector>
 #include <climits> // INT_MAX
 
 class Solution {
@@ -11,35 +9,35 @@ public:
     std::string minWindow(std::string s, std::string t) {
         if (s.size() < t.size()) { return ""; }
 
-        constexpr int R = 128;
-        int freq[R] = {};
-        std::memset(freq, 0, sizeof(freq));
+        constexpr int R = 256; // safe for complete signed impl of char
+        std::vector<int> freq(R, 0); // freq[c] = win still owed char & count
+        for (char c : t) {
+            freq[static_cast<unsigned char>(c)]++;
+        }
 
-        int need = static_cast<int>(t.size());
+        int need = static_cast<int>(t.size()); // total count required, include dup
         int have = 0;
-        for (char c : t) { freq[static_cast<unsigned char>(c)]++; }
+        int start = 0;
+        int len = INT_MAX; // min len of qualified win
 
         int left = 0;
-        int bestLeft = 0;
-        int bestLen = INT_MAX;
         for (int right = 0; right < static_cast<int>(s.size()); right++) {
             int rc = static_cast<unsigned char>(s[right]);
-            if (freq[rc] > 0) { have++; }
+            if (freq[rc] > 0) { have++; } // check before decre
             freq[rc]--;
 
             while (have == need) {
-                if (right - left + 1 < bestLen) {
-                    bestLen = right - left + 1;
-                    bestLeft = left;
+                if (right - left + 1 < len) {
+                    start = left;
+                    len = right - left + 1; 
                 }
+
                 int lc = static_cast<unsigned char>(s[left]);
                 left++;
                 freq[lc]++;
-                if (freq[lc] > 0) { have--; }
+                if (freq[lc] > 0) { have--; } // check after incre
             }
         }
-        return bestLen == INT_MAX ? "" : s.substr(bestLeft, bestLen);
+        return len == INT_MAX ? "" : s.substr(start, len);
     }
 };
-
-// have/need invariant: freq[c] == need[c] - window[c], have/need is filled occurrence of chars

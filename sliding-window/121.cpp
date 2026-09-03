@@ -1,42 +1,36 @@
-// Kadane's Algorithm, T: O(n), S: O(1)
+// one pass state tracing, Kadane's Algorithm, T: O(n), S: O(1)
 
 #include <vector>
-#include <algorithm> // std::max
+#include <algorithm> // std::max, std::min
+#include <climits> // INT_MAX
 
 class Solution {
 public:
     int maxProfit(std::vector<int>& prices) {
-        int curr = 0;
-        int best = 0;
+        int minPrice = INT_MAX;
+        int maxProfit = 0;
 
-        for (int i = 1; i < static_cast<int>(prices.size()); i++) {
-            int diff = prices[i] - prices[i - 1];
-            curr = std::max(diff, curr + diff);
-            best = std::max(best, curr);
+        for (int price : prices) {
+            maxProfit = std::max(maxProfit, price - minPrice);
+            minPrice = std::min(minPrice, price);
         }
-        return best;
+        return maxProfit;
     }
 };
 
 // state-machine, T: O(n), S: O(1)
 
-#include <vector>
-#include <algorithm> // std::max
-
 class Solution {
 public:
     int maxProfit(std::vector<int>& prices) {
-        int hold = -prices[0];
-        int cash = 0;
+        int hold = -prices[0]; // buy on day0 -> become hold state
+        int cash = 0; // never transacted -> become cash state
 
-        for (int i = 1; i < static_cast<int>(prices.size()); i++) {
-            int prevHold = hold;
-            hold = std::max(hold, -prices[i]); // unchange or buy today
-            cash = std::max(cash, prevHold + prices[i]); // unchange or sell today
+        for (int price : prices) {
+            // case need yesterday's hold to update first
+            cash = std::max(cash, hold + price); // unchange or sell today
+            hold = std::max(hold, -price); // unchange or buy today (only one buy)
         }
         return cash;
     }
 };
-
-// hold/cash is state at end of today: hold = best profit when holding a share; cash = best profit when holding nothing
-// prevHold: preserve unchange state of hold as cash updating based on it
