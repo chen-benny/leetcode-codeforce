@@ -1,7 +1,7 @@
-// sliding-window + flat-array, T: O(m + n), S: O(1)
+// sliding-window + char-index-array, T: O(m + n), S: O(R)
 
 #include <string>
-#include <cstring> // std::memset
+#include <vector>
 
 class Solution {
 public:
@@ -10,28 +10,26 @@ public:
         constexpr int R = 26;
         constexpr char BASE = 'a';
 
-        int freq[R];
-        std::memset(freq, 0, sizeof(freq));
+        std::vector<int> freq(R, 0); // char: remain cnt need towards s1
         for (char c : s1) { freq[c - BASE]++; }
 
-        int need = static_cast<int>(s1.size());
+        int m = static_cast<int>(s1.size());
+        int n = static_cast<int>(s2.size());
+
         int have = 0;
         int left = 0;
-        int winSize = static_cast<int>(s1.size());
+        for (int right = 0; right < n; right++) {
+            int r = s2[right] - BASE;
+            if (freq[r] > 0) { have++; }
+            freq[r]--;
 
-        for (int right = 0; right < static_cast<int>(s2.size()); right++) {
-            int rc = s2[right] - BASE;
-            if (freq[rc] > 0) { have++; }
-            freq[rc]--;
-
-            if (right - left + 1 > winSize) {
-                int lc = s2[left] - BASE;
+            if (right - left + 1 > m) {
+                int l = s2[left] - BASE;
                 left++;
-                freq[lc]++;
-                if (freq[lc] > 0) { have--; }
+                freq[l]++;
+                if (freq[l] > 0) { have--; }
             }
-
-            if (have == need) { return true; }
+            if (have == m) { return true; }
         }
         return false;
     }

@@ -6,12 +6,12 @@
 class Solution {
 public:
     bool checkSubarraySum(std::vector<int>& nums, int k) {
-        std::unordered_map<int, int> remIdx;
-        remIdx.reserve(nums.size());
+        std::unordered_map<int, int> remIdx; // remainer: earliest-idx
         remIdx.max_load_factor(0.25f);
+        remIdx.reserve(nums.size());
         remIdx[0] = -1;
 
-        int sum = 0;
+        long long sum = 0;
         for (int i = 0; i < static_cast<int>(nums.size()); i++) {
             sum += nums[i];
             int rem = sum % k;
@@ -20,12 +20,9 @@ public:
             if (it != remIdx.end()) {
                 if (i - it->second >= 2) { return true; }
             } else {
-                remIdx[rem] = i;
+                remIdx[rem] = i; // keep only the earliest idx for remainder
             }
         }
         return false;
     }
 };
-
-// record only the first occurrence of each remainder: length is at least two
-// remIdx[0] = -1: make prefix compute valid
